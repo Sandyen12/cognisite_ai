@@ -1,259 +1,264 @@
-# CogniSite AI - AI-Powered Website Analysis & Content Generation
+# CogniSite AI
 
-Transform your website content with intelligent AI analysis and professional content generation. CogniSite AI analyzes your website structure, identifies improvement opportunities, and generates compelling content for every section.
+An AI-powered platform that analyzes any live website, understands its structure, and engages users in guided conversations to automatically generate high-quality, context-aware content for every section.
 
 ## 🚀 Features
 
-- **Real-Time Website Analysis** - AI-powered scraping and content analysis using OpenAI GPT-4
-- **Intelligent Content Generation** - Generate professional website copy tailored to your brand
-- **Interactive Chat Interface** - Collaborate with AI to refine and improve your content
-- **Project Management** - Save, organize, and track multiple website analysis projects
-- **User Authentication** - Secure user accounts with Supabase authentication
-- **Comprehensive Error Handling** - Robust error management with user-friendly messages
-- **Modern UI/UX** - Beautiful, responsive interface built with React and TailwindCSS
+### Core Functionality
+- **AI Website Analyzer**: Automatically scans and parses website HTML to identify key sections
+- **Guided Conversational AI**: Context-aware conversations tailored to specific section types
+- **Content Generation**: Professional, ready-to-use copy for each website section
+- **Project Management**: Save and manage multiple website projects
+
+### User Experience
+- **Landing Page**: Clean, modern homepage with prominent URL input
+- **Analysis Loading**: Dynamic progress indicators during website analysis
+- **Project Workspace**: Two-column interface with site structure navigator and AI chat
+- **Dashboard**: Project management with usage statistics
+
+### Authentication & Subscription
+- **User Authentication**: Secure sign-up/sign-in with Supabase
+- **Freemium Model**: Free tier with limitations, premium upgrade via Stripe
+- **Project Saving**: Anonymous users can try once, authenticated users can save projects
+
+## 🛠 Tech Stack
+
+- **Frontend**: Next.js 14 with TypeScript
+- **Styling**: Tailwind CSS with custom design system
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **AI**: OpenAI GPT-4 for analysis and content generation
+- **Payments**: Stripe for premium subscriptions
+- **Deployment**: Vercel (recommended)
 
 ## 📋 Prerequisites
 
-- Node.js (v16.x or higher)
-- npm or yarn
-- OpenAI API account with API key
-- Supabase account and project
+Before you begin, ensure you have the following:
 
-## 🛠️ Installation & Setup
+- Node.js 18+ and npm/yarn
+- Supabase account and project
+- OpenAI API key
+- Stripe account (for premium features)
+- Git
+
+## 🚀 Quick Start
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Sandyen12/cognisite_ai.git
-cd cognisite_ai
+git clone <repository-url>
+cd cognisite-ai
 ```
 
 ### 2. Install Dependencies
 
 ```bash
 npm install
+# or
+yarn install
 ```
 
-### 3. Environment Configuration
+### 3. Environment Setup
 
-The project includes a pre-configured `.env` file with working API keys for development. For production, replace with your own keys:
+Copy the `.env.local` file and fill in your API keys:
 
 ```bash
-# CogniSite AI - Environment Configuration
-# These are working API keys for development and testing
+cp .env.local.example .env.local
+```
 
-# Supabase Configuration (Working)
-VITE_SUPABASE_URL=https://dfjzclljojsnbdirswde.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+Update the following variables in `.env.local`:
 
-# OpenAI Configuration (Working)
-VITE_OPENAI_API_KEY=your-openai-api-key
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# Additional AI Services (Optional)
-VITE_GEMINI_API_KEY=your-gemini-api-key-here
-VITE_ANTHROPIC_API_KEY=your-anthropic-api-key-here
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
 
-# Application Configuration
-VITE_APP_NAME=CogniSite AI
-VITE_APP_VERSION=1.0.0
-VITE_ENABLE_ANALYTICS=false
-VITE_ENABLE_ERROR_REPORTING=true
+# Stripe Configuration (for premium features)
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 ```
 
 ### 4. Database Setup
 
-The Supabase database schema is already configured. The migration file is located at:
-`supabase/migrations/20250116021500_website_analysis_platform.sql`
+#### Create Supabase Tables
 
-If you're using your own Supabase instance, run this migration to set up the required tables:
+Run the following SQL in your Supabase SQL editor:
 
-- `user_profiles` - User account information
-- `projects` - Website analysis projects
-- `website_sections` - Analyzed website sections
-- `chat_messages` - AI chat conversations
-- `generated_content` - AI-generated content
-- `user_statistics` - User activity statistics
+```sql
+-- Create user_profiles table
+CREATE TABLE user_profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  full_name TEXT,
+  tier TEXT DEFAULT 'free',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-### 5. Start the Application
+-- Create projects table
+CREATE TABLE projects (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  url TEXT NOT NULL,
+  name TEXT,
+  status TEXT DEFAULT 'analyzing',
+  sections JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create project_content table
+CREATE TABLE project_content (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  section_id TEXT NOT NULL,
+  section_type TEXT NOT NULL,
+  content TEXT,
+  conversation_history JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_content ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies
+CREATE POLICY "Users can view own profile" ON user_profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can view own projects" ON projects
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own projects" ON projects
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own projects" ON projects
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can view own project content" ON project_content
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM projects 
+      WHERE projects.id = project_content.project_id 
+      AND projects.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert own project content" ON project_content
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM projects 
+      WHERE projects.id = project_content.project_id 
+      AND projects.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update own project content" ON project_content
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM projects 
+      WHERE projects.id = project_content.project_id 
+      AND projects.user_id = auth.uid()
+    )
+  );
+```
+
+### 5. Run the Development Server
 
 ```bash
-npm start
+npm run dev
+# or
+yarn dev
 ```
 
-The application will be available at `http://localhost:5173`
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-## 🔧 Configuration Status
-
-Visit `/setup-status` in your browser to check the configuration status and troubleshoot any issues:
-
-- **System Status Check** - Verify all services are connected
-- **Database Migration Status** - Check if all tables are properly set up
-- **API Connection Tests** - Test OpenAI and Supabase connections
-- **Configuration Validation** - Identify missing or invalid settings
-- **Error Log Monitoring** - View recent errors and their solutions
-
-## 🎯 Usage Guide
-
-### 1. Website Analysis
-
-1. Navigate to the landing page
-2. Click "Get Started" or "Analyze Website"
-3. Enter a website URL (e.g., `https://example.com`)
-4. Watch the AI analyze the website in real-time
-5. Review the generated insights and recommendations
-
-### 2. Content Generation
-
-1. From the project workspace, select a website section
-2. Use the chat interface to request specific content
-3. Provide context about your brand, tone, and requirements
-4. Review and refine the AI-generated content
-5. Copy the final content for use on your website
-
-### 3. Project Management
-
-- **Dashboard** - View all your analysis projects
-- **Filters** - Sort by status, date, or search by name
-- **Bulk Actions** - Delete multiple projects at once
-- **Statistics** - Track your usage and activity
-
-## 🏗️ Project Structure
+## 📁 Project Structure
 
 ```
-cognisite_ai/
-├── public/             # Static assets
-├── src/
-│   ├── components/     # Reusable UI components
-│   │   └── ui/        # Base UI components (Button, Input, etc.)
-│   ├── contexts/      # React contexts (Auth, Theme)
-│   ├── lib/           # External service configurations
-│   │   ├── openai.js  # OpenAI API client
-│   │   └── supabase.js # Supabase client
-│   ├── pages/         # Application pages
-│   │   ├── landing-page/
-│   │   ├── user-dashboard/
-│   │   ├── project-workspace/
-│   │   ├── website-analysis-loading/
-│   │   ├── auth/
-│   │   └── setup-status/
-│   ├── services/      # Business logic services
-│   │   ├── projectService.js
-│   │   ├── chatService.js
-│   │   ├── websiteAnalysisService.js
-│   │   ├── errorHandlingService.js
-│   │   └── configService.js
-│   ├── styles/        # Global styles and Tailwind config
-│   ├── utils/         # Utility functions
-│   ├── App.jsx        # Main application component
-│   ├── Routes.jsx     # Application routes
-│   └── index.jsx      # Application entry point
-├── supabase/
-│   └── migrations/    # Database schema migrations
-├── .env               # Environment variables
-├── package.json       # Dependencies and scripts
-├── tailwind.config.js # Tailwind CSS configuration
-└── vite.config.js     # Vite configuration
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   │   ├── analyze/       # Website analysis API
+│   │   ├── chat/          # AI conversation API
+│   │   └── projects/      # Project management API
+│   ├── auth/              # Authentication pages
+│   │   ├── signin/        # Sign in page
+│   │   └── signup/        # Sign up page
+│   ├── analyze/           # Analysis loading page
+│   ├── project/           # Project workspace
+│   ├── dashboard/         # User dashboard
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Landing page
+├── contexts/              # React contexts
+│   └── AuthContext.tsx    # Authentication context
+├── components/            # Reusable components
+├── lib/                   # Utility libraries
+├── types/                 # TypeScript type definitions
+└── utils/                 # Helper functions
 ```
 
-## 🔌 API Integration
+## 🔧 Configuration
 
-### OpenAI Integration
+### Supabase Setup
 
-The application uses OpenAI's GPT-4 model for:
-- Website content analysis
-- Section-specific content generation
-- Interactive chat responses
-- SEO recommendations
+1. Create a new Supabase project
+2. Get your project URL and API keys from Settings > API
+3. Update your `.env.local` file with the credentials
+4. Run the database setup SQL in the SQL editor
 
-**Key Features:**
-- Automatic retry logic with exponential backoff
-- Fallback responses when API is unavailable
-- Token usage optimization
-- Error handling with user-friendly messages
+### OpenAI Setup
 
-### Supabase Integration
+1. Create an OpenAI account and get an API key
+2. Add the API key to your `.env.local` file
+3. Ensure you have sufficient credits for API calls
 
-Supabase provides:
-- User authentication and authorization
-- Real-time database operations
-- Row Level Security (RLS) policies
-- Automatic user profile creation
+### Stripe Setup (Optional)
 
-**Database Schema:**
-- Comprehensive relational design
-- Optimized indexes for performance
-- Trigger-based automation
-- Mock data for development
-
-## 🛡️ Error Handling
-
-The application includes comprehensive error handling:
-
-### Error Categories
-- **Network Errors** - Connection and timeout issues
-- **Authentication Errors** - Login and permission issues  
-- **API Errors** - OpenAI and external service failures
-- **Database Errors** - Supabase connection issues
-- **Analysis Errors** - Website scraping failures
-- **Validation Errors** - Input and data validation
-
-### Error Recovery
-- Automatic retry for transient errors
-- Fallback responses for API failures
-- User-friendly error messages
-- Suggested recovery actions
-- Error logging and monitoring
+1. Create a Stripe account
+2. Get your publishable and secret keys
+3. Add them to your `.env.local` file
+4. Configure webhook endpoints for subscription management
 
 ## 🚀 Deployment
 
-### Development
-```bash
-npm start
-```
+### Vercel (Recommended)
 
-### Production Build
-```bash
-npm run build
-npm run serve
-```
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy
 
-### Environment Variables for Production
-Ensure all environment variables are properly set:
-- Replace development API keys with production keys
-- Update Supabase URL to your production instance
-- Configure analytics and monitoring services
-- Set appropriate CORS policies
+### Other Platforms
 
-## 🔍 Troubleshooting
+The application can be deployed to any platform that supports Next.js:
 
-### Common Issues
+- Netlify
+- Railway
+- DigitalOcean App Platform
+- AWS Amplify
 
-**1. OpenAI API Errors**
-- Verify your API key is valid and has sufficient credits
-- Check if you've exceeded rate limits
-- Ensure your API key has access to GPT-4
+## 📊 Usage
 
-**2. Supabase Connection Issues**
-- Verify your Supabase project is active
-- Check if RLS policies are properly configured
-- Ensure database migrations have been applied
+### Free Tier
+- 1 saved project
+- Analysis of up to 3 pages per site
+- Limited AI content generations per month
 
-**3. Website Analysis Failures**
-- Some websites block automated scraping
-- CORS policies may prevent direct access
-- Try different website URLs for testing
-
-**4. Build Issues**
-- Clear node_modules and reinstall dependencies
-- Check Node.js version compatibility
-- Verify all environment variables are set
-
-### Getting Help
-
-1. Check the `/setup-status` page for configuration issues
-2. Review the error log for detailed error information
-3. Verify all API keys and configuration settings
-4. Check the browser console for JavaScript errors
+### Premium Tier
+- Unlimited projects
+- Full multi-page site analysis
+- Priority support
+- Access to advanced AI models
 
 ## 🤝 Contributing
 
@@ -265,15 +270,25 @@ Ensure all environment variables are properly set:
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- Built with [React](https://reactjs.org/) and [Vite](https://vitejs.dev/)
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Powered by [OpenAI](https://openai.com/) and [Supabase](https://supabase.com/)
-- Icons by [Lucide React](https://lucide.dev/)
+If you encounter any issues or have questions:
+
+1. Check the [Issues](https://github.com/your-repo/issues) page
+2. Create a new issue with detailed information
+3. Contact support at support@cognisite.ai
+
+## 🔮 Roadmap
+
+- [ ] Multi-language support
+- [ ] Advanced AI models for premium users
+- [ ] Content export to various formats
+- [ ] Team collaboration features
+- [ ] API for third-party integrations
+- [ ] Mobile app development
 
 ---
 
-**CogniSite AI** - Transform your website content with the power of artificial intelligence. 🚀
+Built with ❤️ by the CogniSite AI team
