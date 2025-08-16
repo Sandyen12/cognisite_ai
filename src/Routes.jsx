@@ -15,6 +15,18 @@ import NotFound from './pages/NotFound';
 import SignIn from './pages/auth/signin';
 import SignUp from './pages/auth/signup';
 
+// Import setup pages
+import SetupStatus from './pages/setup-status';
+
+// Import analysis pages
+import AnalysisPage from './pages/analyze/[projectId]';
+
+// Import project pages
+import ProjectWorkspaceNew from './pages/project/[projectId]';
+
+// Import dashboard pages
+import Dashboard from './pages/dashboard';
+
 const Routes = () => {
   return (
     <BrowserRouter>
@@ -28,6 +40,18 @@ const Routes = () => {
           {/* Auth routes - accessible for development preview */}
           <Route path="/auth/signin" element={<SignIn />} />
           <Route path="/auth/signup" element={<SignUp />} />
+          
+          {/* Setup and status routes */}
+          <Route path="/setup-status" element={<SetupStatus />} />
+          
+          {/* Analysis routes */}
+          <Route path="/analyze/:projectId" element={<AnalysisPage />} />
+          
+          {/* Project routes */}
+          <Route path="/project/:projectId" element={<ProjectWorkspaceNew />} />
+          
+          {/* Dashboard routes */}
+          <Route path="/dashboard" element={<Dashboard />} />
           
           {/* Protected routes - accessible for development preview */}
           <Route path="/user-dashboard" element={<UserDashboard />} />

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import errorHandlingService from '../services/errorHandlingService';
 
 /**
  * Initialize OpenAI client with API key from environment variables
@@ -48,11 +49,15 @@ Always respond with helpful, detailed content that matches the section's purpose
       suggestions
     };
   } catch (error) {
-    console.error('Error generating chat response:', error);
+    const processedError = errorHandlingService.handleError(
+      error, 
+      'openai_chat_response', 
+      { section: section?.name, userMessageLength: userMessage?.length }
+    );
     
     // Fallback response if API fails
     return {
-      content: `I'm having trouble connecting to generate a response right now. Please check your OpenAI API key configuration or try again later.`,
+      content: `I'm having trouble generating a response: ${processedError.userMessage}`,
       suggestions: generateSuggestionsForSection(section)
     };
   }
@@ -118,10 +123,14 @@ Please provide content that is ready to use on a professional website.`;
       }
     };
   } catch (error) {
-    console.error('Error generating section content:', error);
+    const processedError = errorHandlingService.handleError(
+      error, 
+      'openai_content_generation', 
+      { section: section?.name, promptLength: prompt?.length }
+    );
     
     // Fallback content if API fails
-    const fallbackContent = `Professional content for ${section?.name} section. This content focuses on engaging your visitors and encouraging them to take action. Please configure your OpenAI API key to generate custom content.`;
+    const fallbackContent = `Professional content for ${section?.name} section. This content focuses on engaging your visitors and encouraging them to take action. Error: ${processedError.userMessage}`;
     
     return {
       text: fallbackContent,
@@ -134,7 +143,8 @@ Please provide content that is ready to use on a professional website.`;
         prompt_used: prompt,
         model: 'fallback',
         section_type: section?.name,
-        note: 'Fallback content - check OpenAI API configuration'
+        error: processedError.userMessage,
+        note: 'Fallback content - OpenAI API failed'
       }
     };
   }

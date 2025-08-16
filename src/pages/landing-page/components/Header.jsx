@@ -59,6 +59,16 @@ const Header = () => {
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleNavigation('/setup-status')}
+              iconName="Settings"
+              iconPosition="left"
+              iconSize={16}
+            >
+              Status
+            </Button>
+            <Button
               variant="ghost"
               size="sm"
               onClick={() => handleNavigation('/user-dashboard')}

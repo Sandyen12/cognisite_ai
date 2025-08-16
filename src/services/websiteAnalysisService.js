@@ -1,5 +1,7 @@
 import openai from '../lib/openai';
 import axios from 'axios';
+import errorHandlingService from './errorHandlingService';
+import semanticAnalyzer from './semanticAnalyzer';
 
 /**
  * Website Analysis Service
@@ -38,9 +40,9 @@ export const websiteAnalysisService = {
       const contentAnalysis = await this.analyzeContentWithAI(websiteContent, url);
       onProgress(70);
 
-      // Phase 4: Generate sections and recommendations
+      // Phase 4: Generate sections and recommendations using semantic analyzer
       onActivity('start', 'Generating section recommendations...');
-      const sections = await this.generateWebsiteSections(contentAnalysis, pageStructure);
+      const sections = await semanticAnalyzer.analyzeWebsiteStructure(websiteContent, url);
       onProgress(85);
 
       // Phase 5: Create final analysis report
@@ -67,10 +69,15 @@ export const websiteAnalysisService = {
       return analysisReport;
 
     } catch (error) {
-      console.error('Website analysis failed:', error);
-      onActivity('error', `Analysis failed: ${error?.message}`);
+      const processedError = errorHandlingService.handleError(
+        error, 
+        'website_analysis', 
+        { url, phase: 'analysis' }
+      );
       
-      throw new Error(`Website analysis failed: ${error.message}`);
+      onActivity('error', `Analysis failed: ${processedError.userMessage}`);
+      
+      throw new Error(processedError.userMessage);
     }
   },
 
@@ -111,8 +118,13 @@ export const websiteAnalysisService = {
 
       return response?.data;
     } catch (error) {
-      console.error('Error fetching website:', error);
-      throw new Error(`Failed to fetch website content: ${error.message}`);
+      const processedError = errorHandlingService.handleError(
+        error, 
+        'website_scraping', 
+        { url: fullUrl }
+      );
+      
+      throw new Error(processedError.userMessage);
     }
   },
 
@@ -167,7 +179,12 @@ export const websiteAnalysisService = {
         heading_count: headings?.length
       };
     } catch (error) {
-      console.error('Error extracting page structure:', error);
+      errorHandlingService.handleError(
+        error, 
+        'page_structure_extraction', 
+        { htmlContentLength: htmlContent?.length }
+      );
+      
       return {
         title: 'Website Analysis',
         description: '',
@@ -244,7 +261,11 @@ Format your response as a detailed analysis focusing on practical, actionable in
       };
 
     } catch (error) {
-      console.error('Error in AI content analysis:', error);
+      const processedError = errorHandlingService.handleError(
+        error, 
+        'ai_content_analysis', 
+        { url, contentLength: limitedContent?.length }
+      );
       
       // Fallback analysis if AI fails
       return {
@@ -261,7 +282,7 @@ Format your response as a detailed analysis focusing on practical, actionable in
         ],
         word_count: htmlContent?.split(/\s+/)?.length || 0,
         readability_score: 'Fair',
-        ai_analysis: 'AI analysis unavailable - using fallback assessment'
+        ai_analysis: `AI analysis failed: ${processedError.userMessage}. Using fallback assessment.`
       };
     }
   },
