@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core Colors */
+    --color-background: #FAFAFA; /* warm off-white */
+    --color-foreground: #1E293B; /* rich charcoal */
+    --color-card: #FFFFFF; /* pure white */
+    --color-card-foreground: #1E293B; /* rich charcoal */
+    --color-popover: #FFFFFF; /* pure white */
+    --color-popover-foreground: #1E293B; /* rich charcoal */
+    --color-muted: #F1F5F9; /* light gray */
+    --color-muted-foreground: #64748B; /* medium gray */
+    --color-border: #E2E8F0; /* light border */
+    --color-input: #FFFFFF; /* pure white */
+    --color-ring: #2563EB; /* deep blue */
+
+    /* Brand Colors */
+    --color-primary: #2563EB; /* deep blue */
+    --color-primary-foreground: #FFFFFF; /* white */
+    --color-secondary: #64748B; /* balanced slate gray */
+    --color-secondary-foreground: #FFFFFF; /* white */
+    --color-accent: #10B981; /* vibrant emerald */
+    --color-accent-foreground: #FFFFFF; /* white */
+
+    /* Status Colors */
+    --color-success: #059669; /* deeper emerald */
+    --color-success-foreground: #FFFFFF; /* white */
+    --color-warning: #D97706; /* warm amber */
+    --color-warning-foreground: #FFFFFF; /* white */
+    --color-error: #DC2626; /* clear red */
+    --color-error-foreground: #FFFFFF; /* white */
+    --color-destructive: #DC2626; /* clear red */
+    --color-destructive-foreground: #FFFFFF; /* white */
+
+    /* Typography */
+    --font-heading: 'Inter', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-caption: 'Inter', sans-serif;
+    --font-data: 'JetBrains Mono', monospace;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+
+  .font-data {
+    font-family: var(--font-data);
+  }
+}
+
+@layer components {
+  /* Navigation Styles */
+  .nav-header {
+    @apply fixed top-0 left-0 right-0 z-[1000] bg-card border-b border-border;
+    height: 64px;
+  }
+
+  .nav-header-mobile {
+    height: 56px;
+  }
+
+  .nav-logo {
+    @apply flex items-center space-x-2 text-xl font-semibold text-foreground;
+  }
+
+  .nav-menu {
+    @apply hidden md:flex items-center space-x-6;
+  }
+
+  .nav-menu-item {
+    @apply text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200;
+  }
+
+  .nav-menu-item-active {
+    @apply text-primary;
+  }
+
+  .nav-mobile-menu {
+    @apply md:hidden;
+  }
+
+  .nav-mobile-overlay {
+    @apply fixed inset-0 z-[1100] bg-black/50;
+  }
+
+  .nav-mobile-drawer {
+    @apply fixed top-0 right-0 h-full w-80 bg-card border-l border-border z-[1100] transform transition-transform duration-300;
+  }
+
+  .nav-user-menu {
+    @apply relative;
+  }
+
+  .nav-dropdown {
+    @apply absolute right-0 mt-2 w-48 bg-popover border border-border rounded-md shadow-lg z-[1100];
+  }
+
+  .nav-dropdown-item {
+    @apply block px-4 py-2 text-sm text-popover-foreground hover:bg-muted transition-colors duration-200;
+  }
+
+  /* Content Layout */
+  .main-content {
+    @apply pt-16 md:pt-16;
+  }
+
+  .main-content-minimal {
+    @apply pt-14 md:pt-16;
+  }
+
+  /* Upgrade Prompt Styles */
+.upgrade-prompt  {
+    @apply bg-gradient-to-r border rounded-md p-3;
+  }
+.upgrade-badge  {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-accent;
+  }
+
+  /* Animation Classes */
+  .animate-slide-down {
+    animation: slideDown 300ms ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 300ms ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 200ms ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Responsive Design Utilities */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
